@@ -37,7 +37,8 @@ import {
   Bar
 } from 'recharts'
 
-import { mockFarm, mockCarbonCredits, mockCarbonFootprint, mockRegenerativeScore, mockWeatherData, mockMarketData, mockRevenueProjection, mockSupplyChainEmissions, monthlyCarbonData, carbonPriceHistory, peerBenchmarking, mockSustainablePractices } from '../mocks/fixtures'
+import { mockFarm, mockCarbonCredits, mockCarbonFootprint, mockRegenerativeScore, mockWeatherData, mockMarketData, mockRevenueProjection, mockSupplyChainEmissions, monthlyCarbonData, carbonPriceHistory, mockSustainablePractices } from '../mocks/fixtures'
+import type { SustainablePractice } from '../types/domain'
 import { calculateCarbonFootprint, calculateROI, formatCurrency, formatNumber, formatPercentage, getWeatherAlertColor } from '../lib/sim/calculations'
 
 export default function Dashboard() {
@@ -162,7 +163,7 @@ function OverviewTab() {
         />
         <MetricCard
           title="Active Sustainable Practices"
-          value={`${mockSustainablePractices.filter(p => p.status === 'implemented').length}/5`}
+          value={`${mockSustainablePractices.filter((p: SustainablePractice) => p.status === 'implemented').length}/5`}
           change="+1"
           changeType="positive"
           icon={Target}
@@ -300,14 +301,16 @@ function OverviewTab() {
 }
 
 // Metric Card Component
-function MetricCard({ title, value, change, changeType, icon: Icon, color }: {
+interface MetricCardProps {
   title: string
   value: string
   change: string
   changeType: 'positive' | 'negative'
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   color: string
-}) {
+}
+
+function MetricCard({ title, value, change, changeType, icon: Icon, color }: MetricCardProps) {
   const colorClasses = {
     green: 'bg-green-50 text-green-600',
     blue: 'bg-blue-50 text-blue-600',
@@ -470,11 +473,11 @@ function CalculatorTab() {
       implementationTime: '6 months',
       ...mapping.livestock[selection.livestock]
     },
-  ] as any
+  ]
 
-  const currentFootprint = { ...mockCarbonFootprint, practices: [] as any }
-  const improvedFootprint = calculateCarbonFootprint(implementedPractices as any)
-  const roi = calculateROI(implementedPractices as any)
+  const currentFootprint = { ...mockCarbonFootprint, practices: [] }
+  const improvedFootprint = calculateCarbonFootprint(implementedPractices as SustainablePractice[])
+  const roi = calculateROI(implementedPractices as SustainablePractice[])
 
   const comparisonData = [
     { name: 'Total Emissions', current: currentFootprint.totalEmissions, improved: improvedFootprint.totalEmissions },
@@ -495,8 +498,8 @@ function CalculatorTab() {
                 <label className="text-sm font-medium text-gray-700">{section.name}</label>
                 <select
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                  value={(selection as any)[section.id]}
-                  onChange={(e) => setSelection(prev => ({ ...prev, [section.id]: e.target.value as any }))}
+                  value={selection[section.id as keyof typeof selection]}
+                  onChange={(e) => setSelection(prev => ({ ...prev, [section.id]: e.target.value }))}
                 >
                   {section.options.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
